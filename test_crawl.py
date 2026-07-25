@@ -3,34 +3,40 @@ from crawl import normalize_url
 
 
 class TestCrawl(unittest.TestCase):
-    def test_normalize_url_https(self): 
+    def test_normalize_url_https(self) -> None:
         input_url = "https://www.boot.dev/blog/path"
         actual = normalize_url(input_url)
         expected = "www.boot.dev/blog/path"
         self.assertEqual(actual, expected)
 
-    def test_normalize_url_https_slash(self):
+    def test_normalize_url_https_slash(self) -> None:
         input_url = "https://www.boot.dev/blog/path/"
         actual = normalize_url(input_url)
         expected = "www.boot.dev/blog/path"
         self.assertEqual(actual, expected)
 
-    def test_normalize_url_http(self):
+    def test_normalize_url_http(self) -> None:
         input_url = "http://www.boot.dev/blog/path"
         actual = normalize_url(input_url)
         expected = "www.boot.dev/blog/path"
         self.assertEqual(actual, expected)
 
-    def test_normalize_url_http_slash(self):
+    def test_normalize_url_http_slash(self) -> None:
         input_url = "http://www.boot.dev/blog/path/"
         actual = normalize_url(input_url)
         expected = "www.boot.dev/blog/path"
         self.assertEqual(actual, expected)
 
-    def test_normalize_url_http_slash_query(self):
+    def test_normalize_url_http_slash_query(self) -> None:
         input_url = "http://www.boot.dev/blog/path/?search=google.com"
         actual = normalize_url(input_url)
         expected = "www.boot.dev/blog/path"
+        self.assertEqual(actual, expected)
+
+    def test_normalize_url_capitals(self) -> None:
+        input_url = "https://CRAWLER-TEST.com/path"
+        actual = normalize_url(input_url)
+        expected = "crawler-test.com/path"
         self.assertEqual(actual, expected)
 
 if __name__ == "__main__":
