@@ -1,6 +1,7 @@
 from urllib.parse import urlsplit, urljoin
 from bs4 import BeautifulSoup, Tag
 from typing import TypedDict
+import requests
 
 class PageData(TypedDict):
     url: str
@@ -16,10 +17,12 @@ def normalize_url(url: str) -> str:
     path = path.rstrip("/")
     return path.lower()
 
+
 def get_heading_from_html(html: str) -> str:
     soup = BeautifulSoup(html, 'html.parser')
     h_tag = soup.find('h1') or soup.find('h2')
     return h_tag.get_text(strip=True) if isinstance(h_tag, Tag) else ""
+
 
 def get_first_paragraph_from_html(html: str) -> str:
     soup = BeautifulSoup(html, 'html.parser')
@@ -29,6 +32,7 @@ def get_first_paragraph_from_html(html: str) -> str:
     else:
         first_p = soup.find('p')
     return first_p.get_text(strip=True) if isinstance(first_p, Tag) else ""
+
 
 def get_urls_from_html(html: str, base_url: str) -> list[str]:
     urls = []
@@ -48,6 +52,7 @@ def get_urls_from_html(html: str, base_url: str) -> list[str]:
 
     return urls
 
+
 def get_images_from_html(html: str, base_url: str) -> list[str]:
     image_urls = []
     soup = BeautifulSoup(html, "html.parser")
@@ -66,6 +71,7 @@ def get_images_from_html(html: str, base_url: str) -> list[str]:
 
     return image_urls
 
+
 def extract_page_data(html: str, page_url: str) -> PageData:
     return {
         "url": page_url,
@@ -74,3 +80,19 @@ def extract_page_data(html: str, page_url: str) -> PageData:
         "outgoing_links": get_urls_from_html(html, page_url),
         "image_urls": get_images_from_html(html, page_url),
     }
+
+
+def get_html(url: str) -> str:
+    try:
+        response = requests.get(url, headers={"User-Agent": "BootCrawler/1.0"})
+    except Exception as e:
+        raise Exception(f"network error while fetching {url}: {e}")
+    
+    if response.status_code > 399:
+        raise Exception(f"got HTTP error: {response.status_code} {response.reason}")
+
+    content_type = response.headers.get("content-type", "")
+    if "text/html" not in content_type:
+        raise Exception(f"got non-HTML response: {content_type}")
+    
+    return response.text
