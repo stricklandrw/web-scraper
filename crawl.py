@@ -98,21 +98,44 @@ def get_html(url: str) -> str:
     return response.text
 
 
-def crawl_page(base_url: str, current_url: str=None, page_data: dict=None) -> dict:
-    if base_url.lower() not in current_url.lower():
-        return
-    url = normalize_url(current_url)
-    if url in page_data.keys():
-        return
+def crawl_page(
+    base_url: str,
+    current_url: str | None = None,
+    page_data: dict[str, PageData] | None = None,
+) -> dict[str, PageData]:
+    if current_url is None:
+        current_url = base_url
+    if page_data is None:
+        page_data = {}
+
+    base_url_obj = urlsplit(base_url)
+    current_url_obj = urlsplit(current_url)
+    if base_url_obj.netloc != current_url_obj.netloc:
+        return page_data
+
+    normalized_url = normalize_url(current_url)
+
+    if normalized_url in page_data:
+        return page_data
+
+    print(f"crawling {current_url}")
+    html = safe_get_html(current_url)
+    if html is None:
+        return page_data
+
+    page_info = extract_page_data(html, current_url)
+    page_data[normalized_url] = page_info
+
+    next_urls = get_urls_from_html(html, base_url)
+    for next_url in next_urls:
+        crawl_page(base_url, next_url, page_data)
+
+    return page_data
+
+
+def safe_get_html(url: str) -> str | None:
     try:
-        page = get_html(current_url)
-        print(f"fetched data from {url}")
+        return get_html(url)
     except Exception as e:
-        print(f"Error fetching HTML from {url}: {str(e)}")
-        return
-    page_data[url] = extract_page_data(page, current_url)
-    for link in page_data[url]['outgoing_links']:
-        if link[0] == "/":
-            link = current_url + link
-        crawl_page(base_url, link, page_data)
-    return
+        print(f"{str(e)}")
+        return None

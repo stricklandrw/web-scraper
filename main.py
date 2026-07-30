@@ -14,17 +14,11 @@ def main():
 
     print(f"starting crawl of: {base_url}")
 
-    pages = {}
+    page_data = crawl_page(base_url)
 
-    try:
-        crawl_page(base_url, base_url, pages)
-    except Exception as e:
-        print(f"Error fetching HTML from {base_url}: {str(e)}")
-        sys.exit(1)
-
-    print(f"{len(pages)} found in {base_url}")
-    for page in pages:
-        print(f"{page}\r\n{pages[page]}")
+    print(f"Found {len(page_data)} pages in {base_url}")
+    for page in page_data.values():
+        print(f"- {page['url']}: {len(page['outgoing_links'])} outgoing links")
 
     sys.exit(0)
 
