@@ -96,3 +96,23 @@ def get_html(url: str) -> str:
         raise Exception(f"got non-HTML response: {content_type}")
     
     return response.text
+
+
+def crawl_page(base_url: str, current_url: str=None, page_data: dict=None) -> dict:
+    if base_url.lower() not in current_url.lower():
+        return
+    url = normalize_url(current_url)
+    if url in page_data.keys():
+        return
+    try:
+        page = get_html(current_url)
+        print(f"fetched data from {url}")
+    except Exception as e:
+        print(f"Error fetching HTML from {url}: {str(e)}")
+        return
+    page_data[url] = extract_page_data(page, current_url)
+    for link in page_data[url]['outgoing_links']:
+        if link[0] == "/":
+            link = current_url + link
+        crawl_page(base_url, link, page_data)
+    return

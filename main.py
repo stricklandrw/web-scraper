@@ -1,5 +1,5 @@
 import sys
-from crawl import get_html
+from crawl import crawl_page
 
 def main():
     args = sys.argv
@@ -14,13 +14,17 @@ def main():
 
     print(f"starting crawl of: {base_url}")
 
+    pages = {}
+
     try:
-        html = get_html(base_url)
+        crawl_page(base_url, base_url, pages)
     except Exception as e:
         print(f"Error fetching HTML from {base_url}: {str(e)}")
         sys.exit(1)
 
-    print(html)
+    print(f"{len(pages)} found in {base_url}")
+    for page in pages:
+        print(f"{page}\r\n{pages[page]}")
 
     sys.exit(0)
 
